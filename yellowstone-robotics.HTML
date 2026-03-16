@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Yellowstone Robotics — Meet Covo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --black: #080a08;
+    --off-black: #0e120e;
+    --green: #b6f542;
+    --green-dim: #8cbc2e;
+    --green-glow: rgba(182,245,66,0.15);
+    --white: #f0f2ec;
+    --gray: #6b7266;
+    --card-bg: #111611;
+    --border: rgba(182,245,66,0.12);
+  }
+  *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--black);
+    color: var(--white);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    overflow-x: hidden;
+  }
+
+  /* ── NOISE OVERLAY ── */
+  body::before {
+    content:'';
+    position:fixed; inset:0; z-index:0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+    opacity: 0.025;
+    pointer-events: none;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed; top:0; left:0; right:0; z-index:100;
+    display:flex; align-items:center; justify-content:space-between;
+    padding: 1.25rem 3rem;
+    border-bottom: 1px solid var(--border);
+    background: rgba(8,10,8,0.85);
+    backdrop-filter: blur(18px);
+  }
+  .nav-logo {
+    display:flex; align-items:center; gap:10px;
+    font-family:'Syne',sans-serif; font-weight:700; font-size:1rem;
+    letter-spacing:0.04em; text-transform:uppercase;
+  }
+  .logo-mark {
+    width:32px; height:32px;
+    border: 1.5px solid var(--green);
+    border-radius:6px;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .logo-mark svg { width:16px; height:16px; }
+  .nav-links { display:flex; gap:2.5rem; list-style:none; }
+  .nav-links a {
+    text-decoration:none; font-size:0.85rem; letter-spacing:0.06em;
+    text-transform:uppercase; color: var(--gray);
+    transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--white); }
+  .nav-cta {
+    background: var(--green); color: var(--black);
+    padding: 0.6rem 1.5rem; border-radius:99px;
+    font-family:'Syne',sans-serif; font-weight:700;
+    font-size:0.8rem; letter-spacing:0.08em; text-transform:uppercase;
+    text-decoration:none; transition: background 0.2s, transform 0.15s;
+  }
+  .nav-cta:hover { background:#d4ff5c; transform:translateY(-1px); }
+
+  /* ── HERO ── */
+  .hero {
+    min-height: 100vh;
+    display:flex; flex-direction:column; justify-content:center;
+    padding: 8rem 3rem 5rem;
+    position:relative; overflow:hidden;
+  }
+  .hero-grid-bg {
+    position:absolute; inset:0; z-index:0;
+    background-image:
+      linear-gradient(var(--border) 1px, transparent 1px),
+      linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 60px 60px;
+    mask-image: radial-gradient(ellipse 70% 70% at 60% 50%, black 30%, transparent 100%);
+  }
+  .hero-glow {
+    position:absolute; top:20%; right:10%;
+    width:500px; height:500px; border-radius:50%;
+    background: radial-gradient(circle, rgba(182,245,66,0.08) 0%, transparent 70%);
+    pointer-events:none;
+    animation: pulse 4s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:0.6;transform:scale(1);} 50%{opacity:1;transform:scale(1.08);} }
+  .hero-content { position:relative; z-index:1; max-width:1100px; }
+  .hero-eyebrow {
+    display:inline-flex; align-items:center; gap:8px;
+    border: 1px solid var(--border);
+    padding: 0.4rem 1rem; border-radius:99px;
+    font-size:0.78rem; letter-spacing:0.1em; text-transform:uppercase;
+    color: var(--green); margin-bottom:2rem;
+    animation: fadeUp 0.8s ease both;
+  }
+  .hero-eyebrow span { width:6px;height:6px;border-radius:50%;background:var(--green);animation:blink 2s infinite; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+  .hero h1 {
+    font-family:'Syne',sans-serif; font-weight:800;
+    font-size: clamp(3.5rem, 9vw, 7.5rem);
+    line-height:0.95; letter-spacing:-0.02em;
+    margin-bottom:2rem;
+    animation: fadeUp 0.8s 0.1s ease both;
+  }
+  .hero h1 em { font-style:normal; color:var(--green); }
+  .hero h1 .line2 { display:block; padding-left:4rem; }
+  .hero-sub {
+    max-width:480px; font-size:1.1rem; line-height:1.7;
+    color: rgba(240,242,236,0.6);
+    margin-bottom:3rem;
+    animation: fadeUp 0.8s 0.2s ease both;
+  }
+  .hero-actions {
+    display:flex; align-items:center; gap:1.25rem; flex-wrap:wrap;
+    animation: fadeUp 0.8s 0.3s ease both;
+  }
+  .btn-green {
+    background: var(--green); color:var(--black);
+    padding:0.9rem 2.2rem; border-radius:99px;
+    font-family:'Syne',sans-serif; font-weight:700;
+    font-size:0.9rem; letter-spacing:0.06em; text-transform:uppercase;
+    text-decoration:none; transition:all 0.2s; border:none; cursor:pointer;
+  }
+  .btn-green:hover { background:#d4ff5c; transform:translateY(-2px); box-shadow:0 8px 30px rgba(182,245,66,0.3); }
+  .btn-ghost {
+    border:1px solid rgba(240,242,236,0.2); color:var(--white);
+    padding:0.9rem 2.2rem; border-radius:99px;
+    font-family:'Syne',sans-serif; font-weight:600;
+    font-size:0.9rem; letter-spacing:0.06em; text-transform:uppercase;
+    text-decoration:none; transition:all 0.2s;
+  }
+  .btn-ghost:hover { border-color:var(--white); background:rgba(240,242,236,0.05); }
+  .hero-stats {
+    display:flex; gap:3rem; margin-top:5rem;
+    padding-top:2.5rem; border-top:1px solid var(--border);
+    animation: fadeUp 0.8s 0.4s ease both;
+  }
+  .stat-val {
+    font-family:'Syne',sans-serif; font-weight:800;
+    font-size:2rem; color:var(--green);
+  }
+  .stat-label { font-size:0.8rem; color:var(--gray); text-transform:uppercase; letter-spacing:0.08em; margin-top:2px; }
+
+  /* ROBOT ILLUSTRATION */
+  .hero-robot {
+    position:absolute; right:5%; top:50%; transform:translateY(-50%);
+    width: min(420px, 38vw);
+    animation: float 5s ease-in-out infinite;
+    z-index:1;
+  }
+  @keyframes float { 0%,100%{transform:translateY(-50%) translateY(0)} 50%{transform:translateY(-50%) translateY(-18px)} }
+
+  /* ── FEATURES ── */
+  .features { padding:7rem 3rem; max-width:1200px; margin:0 auto; }
+  .section-label {
+    display:inline-flex; align-items:center; gap:8px;
+    font-size:0.75rem; letter-spacing:0.14em; text-transform:uppercase;
+    color:var(--green); margin-bottom:1.25rem;
+  }
+  .section-label::before { content:''; width:28px;height:1px;background:var(--green); }
+  .section-title {
+    font-family:'Syne',sans-serif; font-weight:800;
+    font-size:clamp(2rem,4vw,3.2rem); line-height:1.1;
+    letter-spacing:-0.02em; margin-bottom:4rem;
+    max-width:520px;
+  }
+  .features-bento {
+    display:grid;
+    grid-template-columns:1fr 1fr 1fr;
+    grid-template-rows: auto auto;
+    gap:1px;
+    background: var(--border);
+    border:1px solid var(--border);
+    border-radius:16px; overflow:hidden;
+  }
+  .feat {
+    background:var(--card-bg); padding:2.5rem 2rem;
+    transition:background 0.25s;
+    position:relative; overflow:hidden;
+  }
+  .feat:hover { background:#141a14; }
+  .feat.wide { grid-column: span 2; }
+  .feat-num {
+    font-family:'Syne',sans-serif; font-weight:800;
+    font-size:3rem; color:rgba(182,245,66,0.1);
+    line-height:1; margin-bottom:1.25rem;
+    transition: color 0.25s;
+  }
+  .feat:hover .feat-num { color:rgba(182,245,66,0.25); }
+  .feat-icon-wrap {
+    width:48px; height:48px; border-radius:10px;
+    border:1px solid var(--border);
+    display:flex; align-items:center; justify-content:center;
+    margin-bottom:1.25rem;
+    background:rgba(182,245,66,0.05);
+  }
+  .feat-title {
+    font-family:'Syne',sans-serif; font-weight:700;
+    font-size:1.1rem; margin-bottom:0.6rem;
+  }
+  .feat-desc { font-size:0.9rem; line-height:1.7; color:rgba(240,242,236,0.5); }
+  .feat-tag {
+    display:inline-block; margin-top:1.2rem;
+    font-size:0.72rem; letter-spacing:0.1em; text-transform:uppercase;
+    color:var(--green); border:1px solid rgba(182,245,66,0.25);
+    padding:3px 10px; border-radius:99px;
+  }
+
+  /* ── HOW IT WORKS ── */
+  .how { padding:7rem 3rem; background:var(--off-black); position:relative; overflow:hidden; }
+  .how::before {
+    content:''; position:absolute; left:50%; top:0; transform:translateX(-50%);
+    width:1px; height:100%; background:var(--border);
+  }
+  .how-inner { max-width:1100px; margin:0 auto; }
+  .steps { display:grid; grid-template-columns:1fr 1fr; gap:4rem; margin-top:4rem; }
+  .step { display:flex; gap:1.5rem; }
+  .step-num {
+    font-family:'Syne',sans-serif; font-weight:800; font-size:3.5rem;
+    color:var(--green); line-height:1; flex-shrink:0; width:60px;
+  }
+  .step-title { font-family:'Syne',sans-serif; font-weight:700; font-size:1.15rem; margin-bottom:0.5rem; }
+  .step-desc { font-size:0.9rem; color:rgba(240,242,236,0.5); line-height:1.7; }
+
+  /* ── PRICING ── */
+  .pricing { padding:7rem 3rem; max-width:1200px; margin:0 auto; }
+  .pricing-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:1.5rem; margin-top:4rem; }
+  .price-card {
+    background:var(--card-bg); border:1px solid var(--border);
+    border-radius:16px; padding:2.5rem 2rem;
+    display:flex; flex-direction:column; gap:0; position:relative;
+    transition: border-color 0.25s, transform 0.25s;
+  }
+  .price-card:hover { border-color:rgba(182,245,66,0.3); transform:translateY(-4px); }
+  .price-card.featured {
+    border-color:var(--green);
+    background:linear-gradient(160deg, #121a0d 0%, #0e120e 100%);
+  }
+  .featured-badge {
+    position:absolute; top:-13px; left:50%; transform:translateX(-50%);
+    background:var(--green); color:var(--black);
+    font-family:'Syne',sans-serif; font-weight:700;
+    font-size:0.7rem; letter-spacing:0.1em; text-transform:uppercase;
+    padding:4px 14px; border-radius:99px; white-space:nowrap;
+  }
+  .plan-name {
+    font-size:0.75rem; letter-spacing:0.12em; text-transform:uppercase;
+    color:var(--gray); margin-bottom:1.5rem;
+  }
+  .plan-price {
+    font-family:'Syne',sans-serif; font-weight:800;
+    font-size:3rem; line-height:1; margin-bottom:0.35rem;
+  }
+  .plan-price sup { font-size:1.4rem; vertical-align:top; margin-top:0.5rem; }
+  .plan-note { font-size:0.82rem; color:var(--gray); margin-bottom:2rem; }
+  .plan-divider { height:1px; background:var(--border); margin:0 0 1.75rem; }
+  .plan-features { list-style:none; display:flex; flex-direction:column; gap:0.85rem; flex:1; margin-bottom:2rem; }
+  .plan-features li { display:flex; align-items:flex-start; gap:10px; font-size:0.88rem; color:rgba(240,242,236,0.65); }
+  .plan-features li::before { content:'✓'; color:var(--green); font-size:0.8rem; margin-top:1px; flex-shrink:0; }
+  .price-btn {
+    display:block; text-align:center; text-decoration:none;
+    padding:0.85rem; border-radius:99px;
+    font-family:'Syne',sans-serif; font-weight:700;
+    font-size:0.85rem; letter-spacing:0.06em; text-transform:uppercase;
+    transition:all 0.2s; margin-top:auto;
+  }
+  .price-btn-outline {
+    border:1px solid rgba(240,242,236,0.2); color:var(--white);
+  }
+  .price-btn-outline:hover { border-color:var(--green); color:var(--green); }
+  .price-btn-solid {
+    background:var(--green); color:var(--black);
+  }
+  .price-btn-solid:hover { background:#d4ff5c; box-shadow:0 8px 30px rgba(182,245,66,0.3); }
+
+  /* ── CTA ── */
+  .cta-section {
+    margin:0 3rem 5rem; border-radius:20px;
+    background:var(--card-bg); border:1px solid var(--border);
+    padding:6rem 4rem; text-align:center; position:relative; overflow:hidden;
+  }
+  .cta-glow {
+    position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+    width:600px; height:300px; border-radius:50%;
+    background:radial-gradient(ellipse, rgba(182,245,66,0.07) 0%, transparent 70%);
+    pointer-events:none;
+  }
+  .cta-section h2 {
+    font-family:'Syne',sans-serif; font-weight:800;
+    font-size:clamp(2.2rem,5vw,4rem); line-height:1.05;
+    letter-spacing:-0.02em; margin-bottom:1.25rem; position:relative;
+  }
+  .cta-section h2 em { font-style:normal; color:var(--green); }
+  .cta-section p {
+    font-size:1.05rem; color:rgba(240,242,236,0.5);
+    max-width:500px; margin:0 auto 3rem; line-height:1.7; position:relative;
+  }
+  .cta-actions { display:flex; gap:1rem; justify-content:center; flex-wrap:wrap; position:relative; }
+  .cta-fine { margin-top:1.5rem; font-size:0.78rem; color:var(--gray); position:relative; }
+
+  /* ── FOOTER ── */
+  footer {
+    border-top:1px solid var(--border);
+    padding:2rem 3rem;
+    display:flex; align-items:center; justify-content:space-between;
+    font-size:0.8rem; color:var(--gray);
+  }
+  .footer-logo {
+    font-family:'Syne',sans-serif; font-weight:700; font-size:0.9rem;
+    letter-spacing:0.06em; text-transform:uppercase; color:var(--white);
+  }
+  .footer-links { display:flex; gap:2rem; }
+  .footer-links a { text-decoration:none; color:var(--gray); transition:color 0.2s; }
+  .footer-links a:hover { color:var(--white); }
+
+  /* ── SCROLL REVEAL ── */
+  .reveal { opacity:0; transform:translateY(28px); transition:opacity 0.7s ease, transform 0.7s ease; }
+  .reveal.visible { opacity:1; transform:none; }
+  .reveal-delay-1 { transition-delay:0.1s; }
+  .reveal-delay-2 { transition-delay:0.2s; }
+  .reveal-delay-3 { transition-delay:0.3s; }
+
+  @media(max-width:900px) {
+    nav { padding:1rem 1.5rem; }
+    .nav-links { display:none; }
+    .hero { padding:7rem 1.5rem 4rem; }
+    .hero h1 .line2 { padding-left:0; }
+    .hero-robot { display:none; }
+    .hero-stats { gap:2rem; }
+    .features, .pricing, .pricing-grid, .steps { display:block; }
+    .feat.wide { grid-column:unset; }
+    .features-bento { grid-template-columns:1fr; }
+    .pricing-grid .price-card { margin-bottom:1.5rem; }
+    .steps .step { margin-bottom:2.5rem; }
+    .cta-section { margin:0 1.5rem 3rem; padding:3.5rem 2rem; }
+    footer { flex-direction:column; gap:1.5rem; text-align:center; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">
+    <div class="logo-mark">
+      <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="8" cy="6" r="3.5" stroke="#b6f542" stroke-width="1.2"/>
+        <rect x="5" y="11" width="6" height="4" rx="2" fill="#b6f542"/>
+        <circle cx="6.5" cy="6" r="0.8" fill="#b6f542"/>
+        <circle cx="9.5" cy="6" r="0.8" fill="#b6f542"/>
+      </svg>
+    </div>
+    Yellowstone Robotics
+  </div>
+  <ul class="nav-links">
+    <li><a href="#features">Features</a></li>
+    <li><a href="#how">How it works</a></li>
+    <li><a href="#pricing">Pricing</a></li>
+  </ul>
+  <a href="#pricing" class="nav-cta">Pre-order Covo</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-grid-bg"></div>
+  <div class="hero-glow"></div>
+
+  <div class="hero-content">
+    <div class="hero-eyebrow">
+      <span></span> Now shipping · Spring 2025
+    </div>
+    <h1>
+      Your home,<br>
+      <em>finally</em>
+      <span class="line2">intelligent.</span>
+    </h1>
+    <p class="hero-sub">Covo is a personal home robot that follows your voice, carries what you need, and learns your daily routines — quietly making life easier.</p>
+    <div class="hero-actions">
+      <a href="#pricing" class="btn-green">Pre-order — $1,799</a>
+      <a href="#features" class="btn-ghost">Explore features</a>
+    </div>
+    <div class="hero-stats">
+      <div>
+        <div class="stat-val">5kg</div>
+        <div class="stat-label">Carry capacity</div>
+      </div>
+      <div>
+        <div class="stat-val">18hr</div>
+        <div class="stat-label">Battery life</div>
+      </div>
+      <div>
+        <div class="stat-val">7 days</div>
+        <div class="stat-label">To learn your routine</div>
+      </div>
+      <div>
+        <div class="stat-val">40+</div>
+        <div class="stat-label">Voice commands</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Robot SVG illustration -->
+  <div class="hero-robot">
+    <svg viewBox="0 0 380 480" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <radialGradient id="bodyGrad" cx="50%" cy="40%" r="60%">
+          <stop offset="0%" stop-color="#1e2e1a"/>
+          <stop offset="100%" stop-color="#0d130d"/>
+        </radialGradient>
+        <radialGradient id="glowGrad" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#b6f542" stop-opacity="0.3"/>
+          <stop offset="100%" stop-color="#b6f542" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+      <!-- glow base -->
+      <ellipse cx="190" cy="420" rx="120" ry="30" fill="url(#glowGrad)"/>
+      <!-- legs -->
+      <rect x="138" y="360" width="40" height="70" rx="20" fill="#131f11"/>
+      <rect x="202" y="360" width="40" height="70" rx="20" fill="#131f11"/>
+      <ellipse cx="158" cy="432" rx="22" ry="10" fill="#0d130d"/>
+      <ellipse cx="222" cy="432" rx="22" ry="10" fill="#0d130d"/>
+      <!-- body -->
+      <rect x="100" y="200" width="180" height="170" rx="28" fill="url(#bodyGrad)"/>
+      <rect x="100" y="200" width="180" height="170" rx="28" stroke="rgba(182,245,66,0.15)" stroke-width="1"/>
+      <!-- body screen -->
+      <rect x="122" y="225" width="136" height="90" rx="10" fill="#080e08"/>
+      <rect x="122" y="225" width="136" height="90" rx="10" stroke="rgba(182,245,66,0.2)" stroke-width="1"/>
+      <!-- screen content -->
+      <rect x="134" y="240" width="60" height="6" rx="3" fill="rgba(182,245,66,0.5)"/>
+      <rect x="134" y="253" width="40" height="4" rx="2" fill="rgba(182,245,66,0.2)"/>
+      <rect x="134" y="264" width="50" height="4" rx="2" fill="rgba(182,245,66,0.2)"/>
+      <rect x="134" y="275" width="35" height="4" rx="2" fill="rgba(182,245,66,0.15)"/>
+      <!-- waveform -->
+      <polyline points="196,256 202,248 208,262 214,244 220,260 226,252 232,256 238,256 244,250 248,258" stroke="#b6f542" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      <!-- body details -->
+      <circle cx="190" cy="348" r="8" fill="#0d130d" stroke="rgba(182,245,66,0.3)" stroke-width="1"/>
+      <circle cx="190" cy="348" r="4" fill="#b6f542" opacity="0.6"/>
+      <!-- arms -->
+      <rect x="56" y="215" width="50" height="24" rx="12" fill="#131f11" stroke="rgba(182,245,66,0.12)" stroke-width="1"/>
+      <rect x="274" y="215" width="50" height="24" rx="12" fill="#131f11" stroke="rgba(182,245,66,0.12)" stroke-width="1"/>
+      <circle cx="66" cy="227" r="9" fill="#0d130d" stroke="rgba(182,245,66,0.2)" stroke-width="1"/>
+      <circle cx="314" cy="227" r="9" fill="#0d130d" stroke="rgba(182,245,66,0.2)" stroke-width="1"/>
+      <!-- head -->
+      <rect x="110" y="80" width="160" height="130" rx="30" fill="url(#bodyGrad)" stroke="rgba(182,245,66,0.2)" stroke-width="1"/>
+      <!-- eyes -->
+      <rect x="130" y="115" width="42" height="28" rx="8" fill="#080e08"/>
+      <rect x="130" y="115" width="42" height="28" rx="8" stroke="rgba(182,245,66,0.3)" stroke-width="1"/>
+      <rect x="208" y="115" width="42" height="28" rx="8" fill="#080e08"/>
+      <rect x="208" y="115" width="42" height="28" rx="8" stroke="rgba(182,245,66,0.3)" stroke-width="1"/>
+      <!-- eye glow -->
+      <rect x="134" y="119" width="34" height="20" rx="5" fill="#b6f542" opacity="0.15"/>
+      <circle cx="151" cy="129" r="7" fill="#b6f542" opacity="0.6"/>
+      <circle cx="229" cy="129" r="7" fill="#b6f542" opacity="0.6"/>
+      <circle cx="151" cy="129" r="3" fill="#fff"/>
+      <circle cx="229" cy="129" r="3" fill="#fff"/>
+      <!-- mouth -->
+      <rect x="155" y="168" width="70" height="8" rx="4" fill="#080e08" stroke="rgba(182,245,66,0.2)" stroke-width="1"/>
+      <rect x="160" y="170" width="60" height="4" rx="2" fill="#b6f542" opacity="0.3"/>
+      <!-- ear bumps -->
+      <rect x="90" y="110" width="24" height="40" rx="12" fill="#131f11" stroke="rgba(182,245,66,0.12)" stroke-width="1"/>
+      <rect x="266" y="110" width="24" height="40" rx="12" fill="#131f11" stroke="rgba(182,245,66,0.12)" stroke-width="1"/>
+      <!-- antenna -->
+      <rect x="187" y="50" width="6" height="32" rx="3" fill="#131f11"/>
+      <circle cx="190" cy="44" r="8" fill="#0d130d" stroke="#b6f542" stroke-width="1.5"/>
+      <circle cx="190" cy="44" r="4" fill="#b6f542" opacity="0.8"/>
+    </svg>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="features" id="features">
+  <div class="reveal"><p class="section-label">What Covo can do</p></div>
+  <h2 class="section-title reveal reveal-delay-1">Built for the way you actually live.</h2>
+
+  <div class="features-bento reveal reveal-delay-2">
+    <div class="feat wide">
+      <div class="feat-num">01</div>
+      <div class="feat-icon-wrap">
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="7" r="4.5" stroke="#b6f542" stroke-width="1.3"/><path d="M3 20c0-4.418 3.582-8 8-8s8 3.582 8 8" stroke="#b6f542" stroke-width="1.3" stroke-linecap="round"/></svg>
+      </div>
+      <div class="feat-title">Natural voice commands</div>
+      <div class="feat-desc">Speak naturally. Covo understands full sentences — no scripted phrases, no app, no wake words needed. Just talk like you would to anyone in your home.</div>
+      <span class="feat-tag">40+ built-in commands</span>
+    </div>
+    <div class="feat">
+      <div class="feat-num">02</div>
+      <div class="feat-icon-wrap">
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M4 6h14M4 11h14M4 16h8" stroke="#b6f542" stroke-width="1.3" stroke-linecap="round"/></svg>
+      </div>
+      <div class="feat-title">Learns your routines</div>
+      <div class="feat-desc">After a week, Covo starts anticipating. Morning coffee setup. Evening reminders. It remembers so you don't have to.</div>
+      <span class="feat-tag">Adaptive AI</span>
+    </div>
+    <div class="feat">
+      <div class="feat-num">03</div>
+      <div class="feat-icon-wrap">
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><rect x="4" y="12" width="14" height="8" rx="3" stroke="#b6f542" stroke-width="1.3"/><path d="M8 12V8a3 3 0 016 0v4" stroke="#b6f542" stroke-width="1.3" stroke-linecap="round"/></svg>
+      </div>
+      <div class="feat-title">Carries up to 5kg</div>
+      <div class="feat-desc">Laundry, groceries, snacks — Covo's tray handles it all. Stable navigation on any flat surface in your home.</div>
+      <span class="feat-tag">5kg payload</span>
+    </div>
+    <div class="feat">
+      <div class="feat-num">04</div>
+      <div class="feat-icon-wrap">
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="11" r="8" stroke="#b6f542" stroke-width="1.3"/><path d="M11 7v4l3 2" stroke="#b6f542" stroke-width="1.3" stroke-linecap="round"/></svg>
+      </div>
+      <div class="feat-title">Smart scheduling</div>
+      <div class="feat-desc">Syncs with your calendar to remind you of meetings, meds, and to-dos at exactly the right moment.</div>
+      <span class="feat-tag">Calendar sync</span>
+    </div>
+    <div class="feat">
+      <div class="feat-num">05</div>
+      <div class="feat-icon-wrap">
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M11 3C7 3 4 6 4 9.5c0 5 7 9.5 7 9.5s7-4.5 7-9.5C18 6 15 3 11 3z" stroke="#b6f542" stroke-width="1.3"/><circle cx="11" cy="9.5" r="2" fill="#b6f542" opacity="0.5"/></svg>
+      </div>
+      <div class="feat-title">SLAM home mapping</div>
+      <div class="feat-desc">Maps your entire home in under 10 minutes. Avoids pets, furniture, and kids without breaking stride.</div>
+      <span class="feat-tag">Multi-room nav</span>
+    </div>
+    <div class="feat wide">
+      <div class="feat-num">06</div>
+      <div class="feat-icon-wrap">
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M11 3v16M3 11h16" stroke="#b6f542" stroke-width="1.3" stroke-linecap="round"/></svg>
+      </div>
+      <div class="feat-title">Expandable with clip-on modules</div>
+      <div class="feat-desc">Air quality sensor, mini speaker, UV sanitizer — Covo grows with you. New modules ship every quarter. Your robot gets smarter over time.</div>
+      <span class="feat-tag">4 modules available now</span>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how" id="how">
+  <div class="how-inner">
+    <div class="reveal"><p class="section-label">How it works</p></div>
+    <h2 class="section-title reveal reveal-delay-1">Up and running in under 20 minutes.</h2>
+    <div class="steps">
+      <div class="step reveal">
+        <div class="step-num">01</div>
+        <div>
+          <div class="step-title">Unbox & power on</div>
+          <div class="step-desc">Covo arrives pre-charged and ready. Set it on the floor and hold the wake button for 3 seconds. That's it.</div>
+        </div>
+      </div>
+      <div class="step reveal reveal-delay-1">
+        <div class="step-num">02</div>
+        <div>
+          <div class="step-title">Let it map your home</div>
+          <div class="step-desc">Say "Covo, explore." It'll spend 10–15 minutes scanning every room, hallway, and obstacle in your home.</div>
+        </div>
+      </div>
+      <div class="step reveal reveal-delay-2">
+        <div class="step-num">03</div>
+        <div>
+          <div class="step-title">Start talking to it</div>
+          <div class="step-desc">"Covo, bring me a glass from the kitchen." "Covo, remind me about my 3pm call." It's ready to follow your lead.</div>
+        </div>
+      </div>
+      <div class="step reveal reveal-delay-3">
+        <div class="step-num">04</div>
+        <div>
+          <div class="step-title">Watch it learn</div>
+          <div class="step-desc">By day 7, Covo has noticed your patterns and starts acting on them — before you even ask. The longer you use it, the better it gets.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section class="pricing" id="pricing">
+  <div class="reveal"><p class="section-label">Pricing</p></div>
+  <h2 class="section-title reveal reveal-delay-1">One robot. One payment. For life.</h2>
+
+  <div class="pricing-grid">
+    <!-- Starter -->
+    <div class="price-card reveal">
+      <div class="plan-name">Covo Starter</div>
+      <div class="plan-price"><sup>$</sup>1,299</div>
+      <div class="plan-note">One-time · free shipping</div>
+      <div class="plan-divider"></div>
+      <ul class="plan-features">
+        <li>Voice command system</li>
+        <li>5kg carry tray</li>
+        <li>Basic home mapping</li>
+        <li>12-hour battery</li>
+        <li>Companion app</li>
+        <li>1-year warranty</li>
+      </ul>
+      <a href="#" class="price-btn price-btn-outline">Order Starter</a>
+    </div>
+    <!-- Pro (featured) -->
+    <div class="price-card featured reveal reveal-delay-1">
+      <div class="featured-badge">Most popular</div>
+      <div class="plan-name" style="color:#b6f542">Covo Pro</div>
+      <div class="plan-price"><sup>$</sup>1,799</div>
+      <div class="plan-note">One-time · free shipping</div>
+      <div class="plan-divider"></div>
+      <ul class="plan-features">
+        <li>Everything in Starter</li>
+        <li>Routine learning AI</li>
+        <li>Advanced SLAM navigation</li>
+        <li>Calendar & app sync</li>
+        <li>18-hour battery</li>
+        <li>Module expansion port</li>
+        <li>2-year warranty</li>
+      </ul>
+      <a href="#" class="price-btn price-btn-solid">Order Covo Pro</a>
+    </div>
+    <!-- Family -->
+    <div class="price-card reveal reveal-delay-2">
+      <div class="plan-name">Covo Family</div>
+      <div class="plan-price"><sup>$</sup>2,499</div>
+      <div class="plan-note">One-time · up to 5 users</div>
+      <div class="plan-divider"></div>
+      <ul class="plan-features">
+        <li>Everything in Pro</li>
+        <li>5 individual voice profiles</li>
+        <li>Multi-floor mapping</li>
+        <li>Priority support</li>
+        <li>3-year warranty</li>
+        <li>Free first module included</li>
+      </ul>
+      <a href="#" class="price-btn price-btn-outline">Order Family</a>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<div class="cta-section reveal">
+  <div class="cta-glow"></div>
+  <h2>Your home is ready<br>for <em>Covo.</em></h2>
+  <p>Join 12,000+ households on the pre-order list. Ships Q3 2025. Cancel any time before your order ships.</p>
+  <div class="cta-actions">
+    <a href="#pricing" class="btn-green">Pre-order now — from $1,299</a>
+    <a href="#features" class="btn-ghost">See all features</a>
+  </div>
+  <p class="cta-fine">60-day risk-free returns &nbsp;·&nbsp; 2-year warranty &nbsp;·&nbsp; Free shipping</p>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">Yellowstone Robotics</div>
+  <p>© 2025 Yellowstone Robotics Inc.</p>
+  <div class="footer-links">
+    <a href="#">Privacy</a>
+    <a href="#">Terms</a>
+    <a href="#">Support</a>
+    <a href="#">Contact</a>
+  </div>
+</footer>
+
+<script>
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('visible'); });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
